@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { PaisSmall } from '../../interfaces/paises.interface';
+import { switchMap, tap } from 'rxjs';
+import { Pais, PaisSmall } from '../../interfaces/paises.interface';
 import { PaisesService } from '../../services/paises.service';
 
 @Component({
@@ -14,11 +15,13 @@ export class SelectorPageComponent implements OnInit {
   miForm: FormGroup = this.fb.group({
     region: ['', Validators.required],
     pais: ['', Validators.required],
+    frontera: ['', Validators.required],
   });
 
   //llenar selectores
   regiones: string[] = [];
   paises: PaisSmall[] = [];
+  fronteras: Pais[] = [];
 
   constructor( private fb: FormBuilder,
                private paisesService: PaisesService ) { }
@@ -29,14 +32,20 @@ export class SelectorPageComponent implements OnInit {
 
     //cuando cambie la region 
     this.miForm.get('region')?.valueChanges 
-        .subscribe( region => {
-          this.paisesService.getPaisesPorRegion(region)
-                .subscribe( paises => {
-                  this.paises = paises;
-                  console.log(this.paises);
-                })
-        })
+        .pipe(
+          tap( () => {this.miForm.get('pais')?.reset('')} ),
+          switchMap( region => this.paisesService.getPaisesPorRegion(region))              
+        )
+        .subscribe( paises => {           
+          this.paises = paises 
+        });      
+
+    this.miForm.get('pais')?.valueChanges
+        .subscribe( alpha => {    
+      console.log(alpha);      
+    })       
   }
+  
 
   guardar(){
     console.log(this.miForm.value);
