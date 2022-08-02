@@ -16,7 +16,7 @@
     </div>
 
     <!-- Selector pais -->
-    <div class="row mb-3">
+    <div class="row mb-3" *ngIf="paises?.length ">
         <div class="col">
             <label class="form-label">Pais</label>
             <select class="form-control"
@@ -29,17 +29,26 @@
     </div>
 
     <!-- Selector fronteras -->
-    <div class="row mb-3">
+    <div class="row mb-3" *ngIf="fronteras?.length">
         <div class="col">
             <label class="form-label">Fronteras</label>
             <select class="form-control"
                     formControlName="frontera">
                 <option value="">-- Seleccione una fontera --</option>
                 <option *ngFor="let frontera of fronteras"
-                        [value]="frontera.cca3">{{ frontera.name.common }}</option>
+                        [value]="frontera.cca3">{{ frontera.name['common'] }}</option>
             </select>
         </div>
     </div>
+
+    <div class="row" *ngIf="cargando">
+        <div class="col">
+            <div class="alert alert-primary">
+                Cargando... 
+            </div>
+        </div>
+    </div>
+
 
     <div class="row">
         <div class="col">

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { switchMap, tap } from 'rxjs';
-import { Pais, PaisSmall } from '../../interfaces/paises.interface';
+import { PaisSmall } from '../../interfaces/paises.interface';
 import { PaisesService } from '../../services/paises.service';
 
 @Component({
@@ -21,7 +21,10 @@ export class SelectorPageComponent implements OnInit {
   //llenar selectores
   regiones: string[] = [];
   paises: PaisSmall[] = [];
-  fronteras: Pais[] = [];
+  fronteras: PaisSmall[] = [];
+
+  //UI
+  cargando: boolean = false; 
 
   constructor( private fb: FormBuilder,
                private paisesService: PaisesService ) { }
@@ -33,17 +36,31 @@ export class SelectorPageComponent implements OnInit {
     //cuando cambie la region 
     this.miForm.get('region')?.valueChanges 
         .pipe(
-          tap( () => {this.miForm.get('pais')?.reset('')} ),
+          tap( () => {
+            this.miForm.get('pais')?.reset('');
+            this.cargando = true;
+          }),
           switchMap( region => this.paisesService.getPaisesPorRegion(region))              
         )
-        .subscribe( paises => {           
+        .subscribe( paises => {  
           this.paises = paises 
+          this.cargando = false;         
         });      
 
     this.miForm.get('pais')?.valueChanges
-        .subscribe( alpha => {    
-      console.log(alpha);      
-    })       
+        .pipe(
+          tap( () => {
+            this.fronteras = [];
+            this.miForm.get('frontera')?.reset('');
+            this.cargando = true;
+          }),
+          switchMap( alpha => this.paisesService.getPaisPorAlpha(alpha)),
+          switchMap( pais => this.paisesService.getPaisesPorAlpha( pais ? pais![0]?.borders : []))
+        )
+        .subscribe( paises => {                            
+              this.fronteras = paises;
+              this.cargando = false;                
+    });
   }
   
 
